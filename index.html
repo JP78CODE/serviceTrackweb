@@ -4,40 +4,54 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ServiceTrack — Sistem Pencatatan Servis</title>
-  <!-- Tailwind CSS -->
+  
+  <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Google Fonts: Inter -->
+  
+  <!-- Google Fonts: Inter & Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <!-- Supabase JS CDN -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Supabase JS Client v2 (CDN Resmi) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
   <style>
-    body { font-family: 'Inter', sans-serif; }
+    body {
+      font-family: 'Inter', 'Plus Jakarta Sans', system-ui, sans-serif;
+    }
+    h1, h2, h3, h4 {
+      font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+    }
   </style>
 </head>
 <body class="bg-slate-50 min-h-screen text-slate-800 flex flex-col antialiased">
 
-  <!-- TOP HEADER BAR -->
+  <!-- ========================================== -->
+  <!-- 1. HEADER BAR & REAL-TIME CONNECTION STATE -->
+  <!-- ========================================== -->
   <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+      
+      <!-- Brand & Title -->
       <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-sm shadow-indigo-200">
-          <!-- Wrench / Screwdriver Icon -->
+        <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-sm shadow-indigo-200 shrink-0">
+          <!-- Wrench / Tool SVG Icon -->
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
           </svg>
         </div>
         <div>
-          <h1 class="text-xl font-bold text-slate-900 tracking-tight leading-tight">ServiceTrack</h1>
+          <h1 class="text-xl font-extrabold text-slate-900 tracking-tight leading-tight">ServiceTrack</h1>
           <p class="text-xs text-slate-500 font-medium">Sistem Pencatatan Servis & Tracking Biaya</p>
         </div>
       </div>
 
-      <div class="flex items-center gap-2.5 self-end sm:self-auto">
-        <!-- Database Status Indicator Badge -->
-        <div id="db-status-badge" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200 transition-all cursor-pointer" onclick="toggleConfigModal(true)" title="Klik untuk atur koneksi Supabase">
+      <!-- Header Controls: Connection Status & Role -->
+      <div class="flex items-center gap-2.5 self-end sm:self-auto flex-wrap">
+        <!-- Supabase Connection Badge -->
+        <div id="db-status-badge" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200 transition-all cursor-pointer" onclick="toggleConfigModal(true)" title="Klik untuk mengonfigurasi koneksi Supabase">
           <span id="db-status-dot" class="relative flex h-2 w-2">
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-slate-400 opacity-75"></span>
             <span class="relative inline-flex rounded-full h-2 w-2 bg-slate-400"></span>
@@ -53,30 +67,33 @@
           Petugas Servis
         </span>
 
-        <!-- Settings Cog -->
-        <button onclick="toggleConfigModal(true)" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all" title="Konfigurasi Supabase">
+        <!-- Settings Cog Button -->
+        <button onclick="toggleConfigModal(true)" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all" title="Konfigurasi Kredensial Supabase">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756-.426 1.756-2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
           </svg>
         </button>
       </div>
+
     </div>
   </header>
 
-  <!-- MAIN WRAPPER -->
+  <!-- ========================================== -->
+  <!-- 2. MAIN CONTAINER & STATISTIK RINGKAS (KPI)-->
+  <!-- ========================================== -->
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full flex flex-col gap-6">
 
-    <!-- KPI / SUMMARY CARDS (3 CARDS) -->
+    <!-- KPI / SUMMARY CARDS -->
     <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <!-- Card 1: Servis Aktif / Diproses -->
+      <!-- Card 1: Servis Aktif (Diterima, Diperiksa, Diproses) -->
       <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
         <div>
           <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Servis Aktif</p>
           <h2 id="kpi-aktif" class="text-2xl font-bold text-slate-900 mt-1">0</h2>
           <span class="text-xs text-blue-600 font-medium">Diterima, Diperiksa & Diproses</span>
         </div>
-        <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+        <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
           </svg>
@@ -90,21 +107,21 @@
           <h2 id="kpi-selesai" class="text-2xl font-bold text-slate-900 mt-1">0</h2>
           <span class="text-xs text-emerald-600 font-medium">Pengerjaan Rampung</span>
         </div>
-        <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+        <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
           </svg>
         </div>
       </div>
 
-      <!-- Card 3: Total Biaya / Pendapatan -->
+      <!-- Card 3: Total Biaya Akhir / Pendapatan -->
       <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
         <div>
           <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Pendapatan Biaya</p>
           <h2 id="kpi-pendapatan" class="text-2xl font-bold text-slate-900 mt-1">Rp 0</h2>
           <span class="text-xs text-indigo-600 font-medium">Akumulasi Biaya Akhir</span>
         </div>
-        <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+        <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
           </svg>
@@ -112,40 +129,66 @@
       </div>
     </section>
 
-    <!-- MAIN SPLIT LAYOUT (2 COLUMNS) -->
+    <!-- STATUS BREAKDOWN BAR (Real-Time Badge Indicators) -->
+    <section class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-2 text-xs">
+      <span class="font-semibold text-slate-500 uppercase tracking-wider">Status Antrean:</span>
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
+          Diterima: <strong id="cnt-diterima" class="ml-1 font-bold">0</strong>
+        </span>
+        <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
+          Diperiksa: <strong id="cnt-diperiksa" class="ml-1 font-bold">0</strong>
+        </span>
+        <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
+          Diproses: <strong id="cnt-diproses" class="ml-1 font-bold">0</strong>
+        </span>
+        <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+          Selesai: <strong id="cnt-selesai" class="ml-1 font-bold">0</strong>
+        </span>
+        <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200">
+          Diambil: <strong id="cnt-diambil" class="ml-1 font-bold">0</strong>
+        </span>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- 3. MAIN SPLIT LAYOUT (2 RESPONSIBLE COLUMNS)-->
+    <!-- ========================================== -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
       <!-- LEFT COLUMN: INPUT / EDIT FORM (5 COLS) -->
       <div class="lg:col-span-5 bg-white rounded-xl border border-slate-200 shadow-sm p-6 sticky top-20">
+        
+        <!-- Form Header -->
         <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
           <div>
             <h3 id="form-title" class="text-lg font-bold text-slate-900">Penerimaan Servis Baru</h3>
-            <p id="form-subtitle" class="text-xs text-slate-500">Mencatat pendaftaran servis barang pelanggan</p>
+            <p id="form-subtitle" class="text-xs text-slate-500">Mencatat pendaftaran unit servis barang pelanggan</p>
           </div>
           <span id="form-mode-badge" class="px-2.5 py-1 text-xs font-semibold rounded-md bg-indigo-50 text-indigo-700">Mode Baru</span>
         </div>
 
-        <!-- ALERT ERROR BOX (TC-01 / TC-02 VALIDATION DISPLAY) -->
-        <div id="alert-error-box" class="hidden mb-4 p-3.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-sm flex items-start gap-3">
+        <!-- ALERT BANNER ERROR BOX (TC-01 / TC-02 VALIDATION DISPLAY) -->
+        <div id="alert-error-box" class="hidden mb-4 p-3.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-sm flex items-start gap-3 transition-all">
           <svg class="w-5 h-5 text-rose-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
           </svg>
           <div class="flex-1">
-            <strong class="font-semibold block text-xs uppercase tracking-wider text-rose-900">Peringatan Validasi:</strong>
+            <strong class="font-semibold block text-xs uppercase tracking-wider text-rose-800">Peringatan Validasi:</strong>
             <span id="alert-error-text">Terjadi kesalahan validasi data.</span>
           </div>
-          <button type="button" onclick="hideErrorAlert()" class="text-rose-400 hover:text-rose-700">
+          <button type="button" onclick="hideErrorAlert()" class="text-rose-400 hover:text-rose-700 transition-colors">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
             </svg>
           </button>
         </div>
 
-        <!-- FORM INPUT -->
+        <!-- FORM INTERAKTIF -->
         <form id="service-form" onsubmit="handleFormSubmit(event)" class="space-y-4">
           <input type="hidden" id="service-id" value="">
 
-          <!-- No. Servis -->
+          <!-- Field 1: Nomor Servis (Auto-Generated) -->
           <div>
             <label for="no_servis" class="block text-xs font-semibold text-slate-600 uppercase mb-1.5">
               Nomor Servis <span class="text-indigo-600">*</span>
@@ -156,12 +199,12 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
                 </svg>
               </div>
-              <input type="text" id="no_servis" required class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm font-mono text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" placeholder="SRV-202611-001">
+              <input type="text" id="no_servis" required class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm font-mono font-semibold text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" placeholder="SRV-202611-001">
             </div>
-            <p class="text-[11px] text-slate-400 mt-1">Otomatis digenerate atau dapat disesuaikan.</p>
+            <p class="text-[11px] text-slate-400 mt-1">Dihasilkan otomatis berformat unik atau dapat disesuaikan.</p>
           </div>
 
-          <!-- Nama Pelanggan -->
+          <!-- Field 2: Nama Pelanggan -->
           <div>
             <label for="nama_pelanggan" class="block text-xs font-semibold text-slate-600 uppercase mb-1.5">
               Nama Pelanggan <span class="text-rose-500">*</span>
@@ -176,7 +219,7 @@
             </div>
           </div>
 
-          <!-- Nama Barang -->
+          <!-- Field 3: Nama Barang -->
           <div>
             <label for="nama_barang" class="block text-xs font-semibold text-slate-600 uppercase mb-1.5">
               Nama Barang / Perangkat <span class="text-rose-500">*</span>
@@ -191,7 +234,7 @@
             </div>
           </div>
 
-          <!-- Status Dropdown (5 Tahap SKPL) -->
+          <!-- Field 4: Status Pengerjaan (5 Opsi Sesuai SKPL) -->
           <div>
             <label for="status" class="block text-xs font-semibold text-slate-600 uppercase mb-1.5">
               Status Pengerjaan <span class="text-rose-500">*</span>
@@ -212,7 +255,7 @@
             </div>
           </div>
 
-          <!-- Biaya Akhir -->
+          <!-- Field 5: Biaya Akhir (TC-01 & TC-02 Target) -->
           <div>
             <label for="biaya_akhir" class="block text-xs font-semibold text-slate-600 uppercase mb-1.5">
               Biaya Akhir (Rp) <span class="text-rose-500">*</span>
@@ -221,10 +264,10 @@
               <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500 font-semibold text-sm pointer-events-none">Rp</span>
               <input type="number" id="biaya_akhir" min="0" step="1000" value="0" required class="w-full pl-10 pr-3 py-2 bg-white border border-slate-300 rounded-lg text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" placeholder="0">
             </div>
-            <p class="text-[11px] text-slate-400 mt-1">Isi nominal saat status servis Selesai atau Diambil (TC-01: 150000).</p>
+            <p class="text-[11px] text-slate-400 mt-1">Isi nominal akhir pengerjaan servis (TC-01: 150000; TC-02: minimal 0).</p>
           </div>
 
-          <!-- Action Buttons -->
+          <!-- Tombol Aksi Form -->
           <div class="pt-2 flex items-center gap-3">
             <button type="submit" id="btn-submit" class="flex-1 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-medium py-2.5 px-4 rounded-lg shadow-sm transition-all flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1">
               <svg id="btn-submit-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -233,18 +276,19 @@
               <span id="btn-submit-text">Simpan Data</span>
             </button>
             <button type="button" id="btn-reset" onclick="resetForm()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2.5 px-4 rounded-lg transition-all text-sm focus:outline-none">
-              Reset
+              Reset / Batal
             </button>
           </div>
         </form>
+
       </div>
 
       <!-- RIGHT COLUMN: TABLE, SEARCH & FILTER (7 COLS) -->
       <div class="lg:col-span-7 flex flex-col gap-4">
 
-        <!-- FILTER & SEARCH BAR -->
+        <!-- SEARCH & FILTER BAR -->
         <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center gap-3 justify-between">
-          <!-- Search Box -->
+          <!-- Live Search Input -->
           <div class="relative w-full sm:w-72">
             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -268,14 +312,14 @@
           </div>
         </div>
 
-        <!-- TABLE CONTAINER -->
+        <!-- TABLE DAFTAR TRANSAKSI SERVIS -->
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
           <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
               <thead>
                 <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
                   <th class="py-3 px-4">No. Servis</th>
-                  <th class="py-3 px-4">Pelanggan</th>
+                  <th class="py-3 px-4">Pelanggan & Tanggal</th>
                   <th class="py-3 px-4">Barang</th>
                   <th class="py-3 px-4">Status</th>
                   <th class="py-3 px-4">Biaya Akhir</th>
@@ -283,20 +327,20 @@
                 </tr>
               </thead>
               <tbody id="services-table-body" class="divide-y divide-slate-100 text-sm">
-                <!-- Dynamically populated via JS safely using textContent / DOM createElement -->
+                <!-- Dirender secara dinamis dan aman via DOM createElement & textContent (Anti-XSS SEC-01) -->
               </tbody>
             </table>
           </div>
 
-          <!-- Empty State Container -->
+          <!-- EMPTY STATE CONTAINER (Kondisi Tabel Kosong) -->
           <div id="empty-state" class="hidden py-12 px-4 text-center flex flex-col items-center justify-center">
-            <div class="w-16 h-16 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mb-3">
+            <div class="w-16 h-16 rounded-full bg-slate-100 text-slate-300 flex items-center justify-center mb-3">
               <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
               </svg>
             </div>
             <h4 class="text-base font-bold text-slate-800">Belum Ada Data Servis</h4>
-            <p class="text-xs text-slate-500 max-w-sm mt-1">Belum ada transaksi servis yang sesuai kriteria pencarian atau belum ada data yang tersimpan.</p>
+            <p class="text-xs text-slate-500 max-w-sm mt-1">Gunakan form di sebelah kiri untuk mencatat transaksi baru.</p>
           </div>
         </div>
 
@@ -304,8 +348,10 @@
     </div>
   </main>
 
-  <!-- DELETE CONFIRMATION MODAL -->
-  <div id="delete-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs transition-opacity">
+  <!-- ========================================== -->
+  <!-- 4. CUSTOM MODAL KONFIRMASI HAPUS DATA      -->
+  <!-- ========================================== -->
+  <div id="delete-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm transition-opacity">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200">
       <div class="w-12 h-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mb-4">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -327,8 +373,10 @@
     </div>
   </div>
 
-  <!-- CONFIGURATION MODAL (SUPABASE KEYS) -->
-  <div id="config-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+  <!-- ========================================== -->
+  <!-- 5. CONFIGURATION MODAL (SUPABASE KEYS)     -->
+  <!-- ========================================== -->
+  <div id="config-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
     <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-200">
       <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
         <h3 class="text-lg font-bold text-slate-900">Konfigurasi Supabase Client</h3>
@@ -339,12 +387,12 @@
         </button>
       </div>
       <p class="text-xs text-slate-500 mb-4 leading-relaxed">
-        Masukkan <strong>Project URL</strong> dan <strong>Anon Public Key</strong> dari menu Settings &gt; API di dashboard Supabase Anda. Kunci rahasia (Secret Key) tidak diperlukan (Sesuai panduan <code>SEC-02</code>).
+        Masukkan <strong>Project URL</strong> dan <strong>Anon Public Key</strong> dari dashboard Supabase Anda. Kunci rahasia (Secret Key) tidak diperbolehkan sesuai audit <code>SEC-02</code>.
       </p>
       <div class="space-y-4">
         <div>
           <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Supabase URL</label>
-          <input type="url" id="cfg-supabase-url" placeholder="https://xyzcompany.supabase.co" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-indigo-500">
+          <input type="url" id="cfg-supabase-url" placeholder="https://your-project-id.supabase.co" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-indigo-500">
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Supabase Anon Key</label>
@@ -353,7 +401,7 @@
       </div>
       <div class="mt-6 flex items-center justify-between">
         <button type="button" onclick="loadDefaultMockData()" class="text-xs font-medium text-indigo-600 hover:underline">
-          Gunakan Mock Data (Demo Lokal)
+          Mode Demo / Offline
         </button>
         <div class="flex items-center gap-2">
           <button type="button" onclick="toggleConfigModal(false)" class="px-4 py-2 rounded-lg text-sm text-slate-600 hover:bg-slate-100">Tutup</button>
@@ -363,45 +411,141 @@
     </div>
   </div>
 
-  <!-- APPLICATION LOGIC & SECURITY ENFORCEMENT -->
+  <!-- ========================================== -->
+  <!-- 6. APPLICATION LOGIC & SECURITY ENFORCEMENT -->
+  <!-- ========================================== -->
   <script>
     /**
-     * ServiceTrack Application Script
-     * Strict adherence to PRD.md, DESIGN.md, and RULES.md
+     * SERVICETRACK APPLICATION CORE SCRIPT
+     * Mematuhi Mutlak PRD, DESIGN SYSTEM, SECURITY RULES & SQL SCHEMA
      */
 
-    // Initial State & Configuration
+    // --- BAGIAN 1: INISIALISASI & KREDENSIAL SUPABASE (SEC-02) ---
+    // Mengambil konfigurasi dari storage klien atau placeholder resmi
+    const SUPABASE_URL = localStorage.getItem('ST_SUPABASE_URL') || "https://your-project-id.supabase.co";
+    const SUPABASE_ANON_KEY = localStorage.getItem('ST_SUPABASE_ANON_KEY') || "your-anon-key";
+    
+    // Inisialisasi Supabase Client resmi SDK v2
+    let supabaseClient = null;
+    try {
+      if (window.supabase && SUPABASE_URL && !SUPABASE_URL.includes("your-project-id")) {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      }
+    } catch (err) {
+      console.warn("Gagal inisialisasi awal Supabase:", err);
+    }
+
+    // State Aplikasi
     let servicesData = [];
     let deleteTargetId = null;
-    let supabaseClient = null;
 
-    // SEC-02: Public Anon Config (Defaults to LocalStorage or empty)
-    let SUPABASE_URL = localStorage.getItem('ST_SUPABASE_URL') || '';
-    let SUPABASE_ANON_KEY = localStorage.getItem('ST_SUPABASE_ANON_KEY') || '';
-
-    // Sample fallback data per Modul 2 SKPL
+    // Data Dummy Awal Realistis (Sesuai Modul 2 SKPL)
     const DEFAULT_DUMMY_DATA = [
-      { id: 1, no_servis: 'SRV-202611-001', nama_pelanggan: 'Ahmad Fauzi', nama_barang: 'Laptop ASUS ROG Zephyrus G14', status: 'Diproses', biaya_akhir: 0.00 },
-      { id: 2, no_servis: 'SRV-202611-002', nama_pelanggan: 'Siti Nurhaliza', nama_barang: 'Printer Epson L3110', status: 'Selesai', biaya_akhir: 150000.00 },
-      { id: 3, no_servis: 'SRV-202611-003', nama_pelanggan: 'Budi Santoso', nama_barang: 'Smartphone Samsung Galaxy S21', status: 'Diterima', biaya_akhir: 0.00 }
+      { id: 1, no_servis: 'SRV-202611-001', nama_pelanggan: 'Ahmad Fauzi', nama_barang: 'Laptop ASUS ROG Zephyrus G14', status: 'Diproses', biaya_akhir: 0.00, created_at: new Date(Date.now() - 86400000 * 2).toISOString() },
+      { id: 2, no_servis: 'SRV-202611-002', nama_pelanggan: 'Siti Nurhaliza', nama_barang: 'Printer Epson L3110', status: 'Selesai', biaya_akhir: 150000.00, created_at: new Date(Date.now() - 86400000).toISOString() },
+      { id: 3, no_servis: 'SRV-202611-003', nama_pelanggan: 'Budi Santoso', nama_barang: 'Smartphone Samsung Galaxy S21', status: 'Diterima', biaya_akhir: 0.00, created_at: new Date().toISOString() }
     ];
 
-    // Initialize Supabase Client
-    function initSupabase() {
-      if (SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase) {
+    // --- BAGIAN 2: HELPER FORMAT LOKALISASI INDONESIA (id-ID) ---
+    const formatRupiah = (number) => {
+      return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      }).format(number || 0);
+    };
+
+    const formatTanggal = (dateString) => {
+      if (!dateString) return '-';
+      try {
+        return new Intl.DateTimeFormat('id-ID', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        }).format(new Date(dateString));
+      } catch (e) {
+        return dateString;
+      }
+    };
+
+    // --- BAGIAN 3: SANITASI MUTLAK ANTI-XSS (SEC-01) ---
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    // Auto-generate No. Servis Unik (SRV-YYYYMM-XXX)
+    function generateServiceNumber() {
+      const now = new Date();
+      const yr = now.getFullYear();
+      const mo = String(now.getMonth() + 1).padStart(2, '0');
+      const randomSeq = String(Math.floor(100 + Math.random() * 900));
+      return `SRV-${yr}${mo}-${randomSeq}`;
+    }
+
+    // Helper Warna Badge Status (Wajib Persis design.md)
+    function getStatusBadgeClass(status) {
+      switch (status) {
+        case 'Diterima':
+          return 'bg-slate-100 text-slate-700 border-slate-200';
+        case 'Diperiksa':
+          return 'bg-amber-50 text-amber-700 border-amber-200';
+        case 'Diproses':
+          return 'bg-blue-50 text-blue-700 border-blue-200';
+        case 'Selesai':
+          return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+        case 'Diambil':
+          return 'bg-purple-50 text-purple-700 border-purple-200';
+        default:
+          return 'bg-slate-100 text-slate-700 border-slate-200';
+      }
+    }
+
+    // --- BAGIAN 4: KONEKSI & SINKRONISASI DATA SUPABASE ---
+    async function loadData() {
+      if (supabaseClient) {
         try {
-          supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
           updateConnectionStatus(true, 'Supabase Connected');
-          fetchServicesFromSupabase();
+          const { data, error } = await supabaseClient
+            .from('services')
+            .select('*')
+            .order('id', { ascending: false });
+
+          if (error) throw error;
+          servicesData = data || [];
+          renderTable();
+          updateStatistics();
           return;
         } catch (err) {
-          console.warn('Gagal menginisialisasi Supabase:', err);
+          console.warn('Gagal memuat dari Supabase, beralih ke fallback:', err);
           updateConnectionStatus(false, 'Supabase Error');
         }
+      } else {
+        updateConnectionStatus(false, 'Mode Demo / Offline');
       }
-      // Demo / Mock Mode
-      updateConnectionStatus(false, 'Mode Demo / Offline');
-      loadStoredOrMockData();
+
+      // Fallback ke LocalStorage / Dummy Data
+      const local = localStorage.getItem('ST_SERVICES_DATA');
+      if (local) {
+        try {
+          servicesData = JSON.parse(local);
+        } catch (e) {
+          servicesData = [...DEFAULT_DUMMY_DATA];
+        }
+      } else {
+        servicesData = [...DEFAULT_DUMMY_DATA];
+        localStorage.setItem('ST_SERVICES_DATA', JSON.stringify(servicesData));
+      }
+      renderTable();
+      updateStatistics();
     }
 
     function updateConnectionStatus(isConnected, message) {
@@ -424,135 +568,62 @@
       text.textContent = message;
     }
 
-    // Fetch Data from Supabase
-    async function fetchServicesFromSupabase() {
-      if (!supabaseClient) return;
-      try {
-        const { data, error } = await supabaseClient
-          .from('services')
-          .select('*')
-          .order('id', { ascending: true });
-
-        if (error) throw error;
-        servicesData = data || [];
-        renderTable();
-        updateKPIs();
-      } catch (err) {
-        console.error('Fetch error:', err);
-        showErrorAlert('Gagal mengambil data dari Supabase: ' + err.message);
-        loadStoredOrMockData();
-      }
-    }
-
-    function loadStoredOrMockData() {
-      const local = localStorage.getItem('ST_SERVICES_DATA');
-      if (local) {
-        try {
-          servicesData = JSON.parse(local);
-        } catch(e) {
-          servicesData = [...DEFAULT_DUMMY_DATA];
-        }
-      } else {
-        servicesData = [...DEFAULT_DUMMY_DATA];
-        localStorage.setItem('ST_SERVICES_DATA', JSON.stringify(servicesData));
-      }
-      renderTable();
-      updateKPIs();
-    }
-
-    // Generate unique No. Servis
-    function generateServiceNumber() {
-      const date = new Date();
-      const yr = date.getFullYear();
-      const mo = String(date.getMonth() + 1).padStart(2, '0');
-      const randomSeq = String(Math.floor(100 + Math.random() * 900));
-      return `SRV-${yr}${mo}-${randomSeq}`;
-    }
-
-    // SEC-01: HTML Escaping Utility for strict XSS prevention
-    function escapeHtml(str) {
-      if (str === null || str === undefined) return '';
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-    }
-
-    // Format Rupiah (id-ID)
-    function formatRupiah(num) {
-      return new Intl.NumberFormat('id-ID', {
-        style: 'currency',
-        currency: 'IDR',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
-      }).format(num || 0);
-    }
-
-    // Status Badge Helpers
-    function getStatusBadgeClass(status) {
-      switch (status) {
-        case 'Diterima':
-          return 'bg-slate-100 text-slate-700 border-slate-200';
-        case 'Diperiksa':
-          return 'bg-amber-50 text-amber-700 border-amber-200';
-        case 'Diproses':
-          return 'bg-blue-50 text-blue-700 border-blue-200';
-        case 'Selesai':
-          return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-        case 'Diambil':
-          return 'bg-purple-50 text-purple-700 border-purple-200';
-        default:
-          return 'bg-slate-100 text-slate-700 border-slate-200';
-      }
-    }
-
-    // Render Table Safely (SEC-01 Compliant)
-    function renderTable(dataToRender = null) {
-      const list = dataToRender || getFilteredServices();
+    // --- BAGIAN 5: RENDER TABEL & STATISTIK (ANTI-XSS MUTLAK) ---
+    function renderTable() {
       const tbody = document.getElementById('services-table-body');
       const emptyState = document.getElementById('empty-state');
+      const filtered = getFilteredServices();
+
       tbody.innerHTML = '';
 
-      if (list.length === 0) {
+      if (filtered.length === 0) {
         emptyState.classList.remove('hidden');
         return;
       }
       emptyState.classList.add('hidden');
 
-      list.forEach(item => {
+      filtered.forEach(item => {
         const tr = document.createElement('tr');
         tr.className = "hover:bg-slate-50 transition-colors border-b border-slate-100";
 
-        // Kolom 1: No. Servis (Monospace)
+        // Kolom 1: No. Servis (font-mono)
         const tdNo = document.createElement('td');
-        tdNo.className = "py-3 px-4 font-mono font-semibold text-slate-900 text-xs";
-        tdNo.textContent = item.no_servis; // SEC-01 textContent
+        tdNo.className = "py-3 px-4 font-mono font-semibold text-slate-800 text-xs";
+        tdNo.textContent = item.no_servis; // SEC-01 AMAN
         tr.appendChild(tdNo);
 
-        // Kolom 2: Nama Pelanggan
+        // Kolom 2: Pelanggan & Tanggal
         const tdPelanggan = document.createElement('td');
-        tdPelanggan.className = "py-3 px-4 font-medium text-slate-800";
-        tdPelanggan.textContent = item.nama_pelanggan; // SEC-01 textContent
+        tdPelanggan.className = "py-3 px-4";
+        
+        const divNama = document.createElement('div');
+        divNama.className = "font-medium text-slate-900";
+        divNama.textContent = item.nama_pelanggan; // SEC-01 AMAN
+
+        const divTanggal = document.createElement('div');
+        divTanggal.className = "text-[11px] text-slate-400 mt-0.5";
+        divTanggal.textContent = formatTanggal(item.created_at);
+
+        tdPelanggan.appendChild(divNama);
+        tdPelanggan.appendChild(divTanggal);
         tr.appendChild(tdPelanggan);
 
-        // Kolom 3: Nama Barang
+        // Kolom 3: Barang
         const tdBarang = document.createElement('td');
         tdBarang.className = "py-3 px-4 text-slate-600";
-        tdBarang.textContent = item.nama_barang; // SEC-01 textContent
+        tdBarang.textContent = item.nama_barang; // SEC-01 AMAN
         tr.appendChild(tdBarang);
 
         // Kolom 4: Status Badge
         const tdStatus = document.createElement('td');
         tdStatus.className = "py-3 px-4";
         const badge = document.createElement('span');
-        badge.className = `inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusBadgeClass(item.status)}`;
+        badge.className = `inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${getStatusBadgeClass(item.status)}`;
         badge.textContent = item.status;
         tdStatus.appendChild(badge);
         tr.appendChild(tdStatus);
 
-        // Kolom 5: Biaya Akhir
+        // Kolom 5: Biaya Akhir (formatRupiah)
         const tdBiaya = document.createElement('td');
         tdBiaya.className = "py-3 px-4 font-semibold text-slate-900";
         tdBiaya.textContent = formatRupiah(item.biaya_akhir);
@@ -561,8 +632,8 @@
         // Kolom 6: Aksi (Edit & Hapus)
         const tdAksi = document.createElement('td');
         tdAksi.className = "py-3 px-4 text-center whitespace-nowrap";
-        
-        // Edit Button
+
+        // Tombol Edit
         const btnEdit = document.createElement('button');
         btnEdit.className = "inline-flex items-center p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all mr-1";
         btnEdit.title = "Edit Data Servis";
@@ -573,9 +644,9 @@
           </svg>
         `;
 
-        // Delete Button
+        // Tombol Hapus (Pemicu Custom Modal)
         const btnDelete = document.createElement('button');
-        btnDelete.className = "inline-flex items-center p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all";
+        btnDelete.className = "inline-flex items-center p-1.5 text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-lg transition-all";
         btnDelete.title = "Hapus Servis";
         btnDelete.onclick = () => openDeleteModal(item.id, item.no_servis, item.nama_pelanggan);
         btnDelete.innerHTML = `
@@ -592,8 +663,8 @@
       });
     }
 
-    // Update Top Summary / KPI Cards
-    function updateKPIs() {
+    // Perhitungan Statistik Real-Time
+    function updateStatistics() {
       const aktifCount = servicesData.filter(s => ['Diterima', 'Diperiksa', 'Diproses'].includes(s.status)).length;
       const selesaiCount = servicesData.filter(s => ['Selesai', 'Diambil'].includes(s.status)).length;
       const totalPendapatan = servicesData.reduce((acc, s) => acc + (parseFloat(s.biaya_akhir) || 0), 0);
@@ -601,21 +672,28 @@
       document.getElementById('kpi-aktif').textContent = aktifCount;
       document.getElementById('kpi-selesai').textContent = selesaiCount;
       document.getElementById('kpi-pendapatan').textContent = formatRupiah(totalPendapatan);
+
+      // Breakdown per status
+      document.getElementById('cnt-diterima').textContent = servicesData.filter(s => s.status === 'Diterima').length;
+      document.getElementById('cnt-diperiksa').textContent = servicesData.filter(s => s.status === 'Diperiksa').length;
+      document.getElementById('cnt-diproses').textContent = servicesData.filter(s => s.status === 'Diproses').length;
+      document.getElementById('cnt-selesai').textContent = servicesData.filter(s => s.status === 'Selesai').length;
+      document.getElementById('cnt-diambil').textContent = servicesData.filter(s => s.status === 'Diambil').length;
     }
 
-    // Search & Filter
+    // Filter & Search Real-Time
     function getFilteredServices() {
-      const searchQuery = (document.getElementById('search-input').value || '').toLowerCase().trim();
+      const q = (document.getElementById('search-input').value || '').toLowerCase().trim();
       const statusFilter = document.getElementById('status-filter').value;
 
       return servicesData.filter(item => {
-        const matchSearch = (
-          (item.no_servis && item.no_servis.toLowerCase().includes(searchQuery)) ||
-          (item.nama_pelanggan && item.nama_pelanggan.toLowerCase().includes(searchQuery)) ||
-          (item.nama_barang && item.nama_barang.toLowerCase().includes(searchQuery))
+        const matchQ = (
+          (item.no_servis && item.no_servis.toLowerCase().includes(q)) ||
+          (item.nama_pelanggan && item.nama_pelanggan.toLowerCase().includes(q)) ||
+          (item.nama_barang && item.nama_barang.toLowerCase().includes(q))
         );
         const matchStatus = (statusFilter === 'ALL' || item.status === statusFilter);
-        return matchSearch && matchStatus;
+        return matchQ && matchStatus;
       });
     }
 
@@ -623,11 +701,11 @@
       renderTable();
     }
 
-    // Error Alert Box Handlers (TC-01 / TC-02)
-    function showErrorAlert(message) {
+    // --- BAGIAN 6: VALIDASI PRE-FLIGHT (TC-01 & TC-02) & SUBMIT HANDLER ---
+    function showError(message) {
       const alertBox = document.getElementById('alert-error-box');
       const alertText = document.getElementById('alert-error-text');
-      alertText.textContent = message; // SEC-01 Safe textContent
+      alertText.textContent = message; // SEC-01 Aman
       alertBox.classList.remove('hidden');
       alertBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
@@ -636,7 +714,6 @@
       document.getElementById('alert-error-box').classList.add('hidden');
     }
 
-    // Form Submit Handler (Create & Update with TC-01 & TC-02 Enforcement)
     async function handleFormSubmit(event) {
       event.preventDefault();
       hideErrorAlert();
@@ -646,34 +723,40 @@
       const nama_pelanggan = document.getElementById('nama_pelanggan').value.trim();
       const nama_barang = document.getElementById('nama_barang').value.trim();
       const status = document.getElementById('status').value;
-      const biayaAkhirInput = document.getElementById('biaya_akhir').value;
+      const biaya_akhir = document.getElementById('biaya_akhir').value;
 
-      // 1. Mandatory Text Validation
-      if (!no_servis || !nama_pelanggan || !nama_barang) {
-        showErrorAlert("Semua field bertanda bintang (*) wajib diisi.");
-        return;
+      // 1. Validasi String Kosong (TC-01)
+      if (!nama_pelanggan.trim() || !nama_barang.trim()) {
+        showError("Nama pelanggan dan nama barang wajib diisi.");
+        if (!nama_pelanggan.trim()) {
+          document.getElementById('nama_pelanggan').focus();
+        } else {
+          document.getElementById('nama_barang').focus();
+        }
+        return false;
       }
 
-      // 2. Strict Input Validation (TC-02: Non-negative check)
-      const nominalBiaya = parseFloat(biayaAkhirInput);
+      // 2. Validasi Nominal Negatif (TC-02)
+      const nominalBiaya = parseFloat(biaya_akhir);
       if (isNaN(nominalBiaya) || nominalBiaya < 0) {
-        showErrorAlert("Biaya akhir tidak boleh bernilai negatif (minimal 0)");
+        showError("Biaya akhir tidak boleh bernilai negatif (minimal 0)");
         document.getElementById('biaya_akhir').focus();
-        return;
+        return false;
       }
 
-      // 3. Status Validation
-      const validStatuses = ['Diterima', 'Diperiksa', 'Diproses', 'Selesai', 'Diambil'];
-      if (!validStatuses.includes(status)) {
-        showErrorAlert("Status pengerjaan servis tidak valid.");
-        return;
+      // 3. Validasi Konsistensi Status
+      const validStatus = ['Diterima', 'Diperiksa', 'Diproses', 'Selesai', 'Diambil'];
+      if (!validStatus.includes(status)) {
+        showError("Status pengerjaan servis tidak valid.");
+        document.getElementById('status').focus();
+        return false;
       }
 
-      // Button Loading State
+      // Aktifkan Loading State pada Tombol
       setButtonLoading(true);
 
       const payload = {
-        no_servis,
+        no_servis: no_servis || generateServiceNumber(),
         nama_pelanggan,
         nama_barang,
         status,
@@ -683,46 +766,51 @@
       try {
         if (supabaseClient) {
           if (serviceId) {
-            // UPDATE
+            // Operasi UPDATE ke Supabase
             const { error } = await supabaseClient
               .from('services')
               .update(payload)
               .eq('id', serviceId);
             if (error) throw error;
           } else {
-            // INSERT
+            // Operasi INSERT ke Supabase
             const { error } = await supabaseClient
               .from('services')
               .insert([payload]);
             if (error) throw error;
           }
-          await fetchServicesFromSupabase();
+          await loadData();
         } else {
-          // Local/Demo Mode Mutation
+          // Mutasi Lokal (Mode Demo / Offline)
           if (serviceId) {
-            const index = servicesData.findIndex(s => s.id == serviceId);
-            if (index !== -1) {
-              servicesData[index] = { ...servicesData[index], ...payload };
+            const idx = servicesData.findIndex(s => s.id == serviceId);
+            if (idx !== -1) {
+              servicesData[idx] = { ...servicesData[idx], ...payload };
             }
           } else {
-            const newId = servicesData.length > 0 ? Math.max(...servicesData.map(s => s.id)) + 1 : 1;
-            servicesData.push({ id: newId, ...payload });
+            const nextId = servicesData.length > 0 ? Math.max(...servicesData.map(s => Number(s.id) || 0)) + 1 : 1;
+            servicesData.unshift({
+              id: nextId,
+              ...payload,
+              created_at: new Date().toISOString()
+            });
           }
           localStorage.setItem('ST_SERVICES_DATA', JSON.stringify(servicesData));
           renderTable();
-          updateKPIs();
+          updateStatistics();
         }
 
         resetForm();
       } catch (err) {
         console.error('Submit error:', err);
-        showErrorAlert('Gagal menyimpan ke database: ' + (err.message || err));
+        showError('Gagal menyimpan transaksi: ' + (err.message || err));
       } finally {
+        // Kembalikan status tombol di blok finally
         setButtonLoading(false);
       }
     }
 
-    // Populate Form for Editing (Update Flow)
+    // Isi Form untuk Edit (Mode Update)
     function populateFormForEdit(id) {
       const item = servicesData.find(s => s.id == id);
       if (!item) return;
@@ -735,17 +823,17 @@
       document.getElementById('status').value = item.status;
       document.getElementById('biaya_akhir').value = item.biaya_akhir;
 
-      // Update Form UI Labels
+      // Update Label & Tampilan Mode Edit
       document.getElementById('form-title').textContent = "Edit Data & Biaya Servis";
-      document.getElementById('form-subtitle').textContent = `Memperbarui record #${item.no_servis}`;
+      document.getElementById('form-subtitle').textContent = `Memperbarui record servis #${item.no_servis}`;
       document.getElementById('form-mode-badge').textContent = "Mode Edit";
       document.getElementById('form-mode-badge').className = "px-2.5 py-1 text-xs font-semibold rounded-md bg-amber-50 text-amber-700";
       document.getElementById('btn-submit-text').textContent = "Perbarui Data";
-      
+
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // Reset Form to Initial New State
+    // Reset Form ke Mode Baru
     function resetForm() {
       hideErrorAlert();
       document.getElementById('service-form').reset();
@@ -755,13 +843,13 @@
       document.getElementById('biaya_akhir').value = 0;
 
       document.getElementById('form-title').textContent = "Penerimaan Servis Baru";
-      document.getElementById('form-subtitle').textContent = "Mencatat pendaftaran servis barang pelanggan";
+      document.getElementById('form-subtitle').textContent = "Mencatat pendaftaran unit servis barang pelanggan";
       document.getElementById('form-mode-badge').textContent = "Mode Baru";
       document.getElementById('form-mode-badge').className = "px-2.5 py-1 text-xs font-semibold rounded-md bg-indigo-50 text-indigo-700";
       document.getElementById('btn-submit-text').textContent = "Simpan Data";
     }
 
-    // Loading State Toggle
+    // Standar Loading State Tombol
     function setButtonLoading(isLoading) {
       const btn = document.getElementById('btn-submit');
       const text = document.getElementById('btn-submit-text');
@@ -778,13 +866,16 @@
         btn.classList.remove('opacity-70', 'cursor-not-allowed');
         icon.classList.remove('animate-spin');
         icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>`;
+        const isEdit = Boolean(document.getElementById('service-id').value);
+        text.textContent = isEdit ? "Perbarui Data" : "Simpan Data";
       }
     }
 
-    // Delete Modal Logic
+    // --- BAGIAN 7: CUSTOM MODAL HAPUS DATA (TANPA WINDOW.CONFIRM) ---
     function openDeleteModal(id, noServis, pelanggan) {
       deleteTargetId = id;
-      document.getElementById('delete-item-name').textContent = `${noServis} (${pelanggan})`;
+      const targetSpan = document.getElementById('delete-item-name');
+      targetSpan.textContent = `${noServis} (${pelanggan})`; // SEC-01 Aman
       document.getElementById('delete-modal').classList.remove('hidden');
     }
 
@@ -795,9 +886,9 @@
 
     async function executeDelete() {
       if (!deleteTargetId) return;
-      const btnConfirm = document.getElementById('btn-confirm-delete');
-      btnConfirm.disabled = true;
-      btnConfirm.textContent = "Menghapus...";
+      const btn = document.getElementById('btn-confirm-delete');
+      btn.disabled = true;
+      btn.textContent = "Menghapus...";
 
       try {
         if (supabaseClient) {
@@ -806,29 +897,29 @@
             .delete()
             .eq('id', deleteTargetId);
           if (error) throw error;
-          await fetchServicesFromSupabase();
+          await loadData();
         } else {
           servicesData = servicesData.filter(s => s.id != deleteTargetId);
           localStorage.setItem('ST_SERVICES_DATA', JSON.stringify(servicesData));
           renderTable();
-          updateKPIs();
+          updateStatistics();
         }
         closeDeleteModal();
       } catch (err) {
         console.error('Delete error:', err);
-        alert('Gagal menghapus data: ' + err.message);
+        showError('Gagal menghapus data: ' + (err.message || err));
       } finally {
-        btnConfirm.disabled = false;
-        btnConfirm.textContent = "Ya, Hapus Data";
+        btn.disabled = false;
+        btn.textContent = "Ya, Hapus Data";
       }
     }
 
-    // Config Modal
+    // --- BAGIAN 8: MODAL KONFIGURASI SUPABASE ---
     function toggleConfigModal(show) {
       const modal = document.getElementById('config-modal');
       if (show) {
-        document.getElementById('cfg-supabase-url').value = SUPABASE_URL;
-        document.getElementById('cfg-supabase-key').value = SUPABASE_ANON_KEY;
+        document.getElementById('cfg-supabase-url').value = localStorage.getItem('ST_SUPABASE_URL') || '';
+        document.getElementById('cfg-supabase-key').value = localStorage.getItem('ST_SUPABASE_ANON_KEY') || '';
         modal.classList.remove('hidden');
       } else {
         modal.classList.add('hidden');
@@ -840,34 +931,35 @@
       const key = document.getElementById('cfg-supabase-key').value.trim();
 
       if (!url || !key) {
-        alert("Silakan isi Supabase URL dan Anon Key");
+        showError("Supabase URL dan Anon Key wajib diisi.");
         return;
       }
 
-      SUPABASE_URL = url;
-      SUPABASE_ANON_KEY = key;
       localStorage.setItem('ST_SUPABASE_URL', url);
       localStorage.setItem('ST_SUPABASE_ANON_KEY', key);
 
-      toggleConfigModal(false);
-      initSupabase();
+      try {
+        supabaseClient = window.supabase.createClient(url, key);
+        toggleConfigModal(false);
+        loadData();
+      } catch (e) {
+        showError("Format URL Supabase tidak valid.");
+      }
     }
 
     function loadDefaultMockData() {
       localStorage.removeItem('ST_SUPABASE_URL');
       localStorage.removeItem('ST_SUPABASE_ANON_KEY');
-      SUPABASE_URL = '';
-      SUPABASE_ANON_KEY = '';
       supabaseClient = null;
       toggleConfigModal(false);
       updateConnectionStatus(false, 'Mode Demo / Offline');
-      loadStoredOrMockData();
+      loadData();
     }
 
-    // App Initialization
+    // --- BAGIAN 9: INITIAL LOAD ---
     window.addEventListener('DOMContentLoaded', () => {
       document.getElementById('no_servis').value = generateServiceNumber();
-      initSupabase();
+      loadData();
     });
   </script>
 </body>
