@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ServiceTrack — Sistem Pencatatan Servis</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Supabase JS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800 flex flex-col antialiased">
+
+  <!-- TOP HEADER BAR -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-sm shadow-indigo-200">
+          <!-- Wrench / Screwdriver Icon -->
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold text-slate-900 tracking-tight leading-tight">ServiceTrack</h1>
+          <p class="text-xs text-slate-500 font-medium">Sistem Pencatatan Servis & Tracking Biaya</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2.5 self-end sm:self-auto">
+        <!-- Database Status Indicator Badge -->
+        <div id="db-status-badge" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200 transition-all cursor-pointer" onclick="toggleConfigModal(true)" title="Klik untuk atur koneksi Supabase">
+          <span id="db-status-dot" class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-slate-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-slate-400"></span>
+          </span>
+          <span id="db-status-text">Memeriksa Database...</span>
+        </div>
+
+        <!-- Role Badge -->
+        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+          </svg>
+          Petugas Servis
+        </span>
+
+        <!-- Settings Cog -->
+        <button onclick="toggleConfigModal(true)" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all" title="Konfigurasi Supabase">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756-.426 1.756-2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN WRAPPER -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full flex flex-col gap-6">
+
+    <!-- KPI / SUMMARY CARDS (3 CARDS) -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <!-- Card 1: Servis Aktif / Diproses -->
+      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+        <div>
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Servis Aktif</p>
+          <h2 id="kpi-aktif" class="text-2xl font-bold text-slate-900 mt-1">0</h2>
+          <span class="text-xs text-blue-600 font-medium">Diterima, Diperiksa & Diproses</span>
+        </div>
+        <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Card 2: Servis Selesai & Diambil -->
+      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+        <div>
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Selesai & Diambil</p>
+          <h2 id="kpi-selesai" class="text-2xl font-bold text-slate-900 mt-1">0</h2>
+          <span class="text-xs text-emerald-600 font-medium">Pengerjaan Rampung</span>
+        </div>
+        <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Card 3: Total Biaya / Pendapatan -->
+      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+        <div>
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Pendapatan Biaya</p>
+          <h2 id="kpi-pendapatan" class="text-2xl font-bold text-slate-900 mt-1">Rp 0</h2>
+          <span class="text-xs text-indigo-600 font-medium">Akumulasi Biaya Akhir</span>
+        </div>
+        <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- MAIN SPLIT LAYOUT (2 COLUMNS) -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+      <!-- LEFT COLUMN: INPUT / EDIT FORM (5 COLS) -->
+      <div class="lg:col-span-5 bg-white rounded-xl border border-slate-200 shadow-sm p-6 sticky top-20">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
+          <div>
+            <h3 id="form-title" class="text-lg font-bold text-slate-900">Penerimaan Servis Baru</h3>
+            <p id="form-subtitle" class="text-xs text-slate-500">Mencatat pendaftaran servis barang pelanggan</p>
+          </div>
+          <span id="form-mode-badge" class="px-2.5 py-1 text-xs font-semibold rounded-md bg-indigo-50 text-indigo-700">Mode Baru</span>
+        </div>
+
+        <!-- ALERT ERROR BOX (TC-01 / TC-02 VALIDATION DISPLAY) -->
+        <div id="alert-error-box" class="hidden mb-4 p-3.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-sm flex items-start gap-3">
+          <svg class="w-5 h-5 text-rose-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <div class="flex-1">
+            <strong class="font-semibold block text-xs uppercase tracking-wider text-rose-900">Peringatan Validasi:</strong>
+            <span id="alert-error-text">Terjadi kesalahan validasi data.</span>
+          </div>
+          <button type="button" onclick="hideErrorAlert()" class="text-rose-400 hover:text-rose-700">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+
+        <!-- FORM INPUT -->
+        <form id="service-form" onsubmit="handleFormSubmit(event)" class="space-y-4">
+          <input type="hidden" id="service-id" value="">
+
+          <!-- No. Servis -->
+          <div>
+            <label for="no_servis" class="block text-xs font-semibold text-slate-600 uppercase mb-1.5">
+              Nomor Servis <span class="text-indigo-600">*</span>
+            </label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                </svg>
+              </div>
+              <input type="text" id="no_servis" required class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm font-mono text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" placeholder="SRV-202611-001">
+            </div>
+            <p class="text-[11px] text-slate-400 mt-1">Otomatis digenerate atau dapat disesuaikan.</p>
+          </div>
+
+          <!-- Nama Pelanggan -->
+          <div>
+            <label for="nama_pelanggan" class="block text-xs font-semibold text-slate-600 uppercase mb-1.5">
+              Nama Pelanggan <span class="text-rose-500">*</span>
+            </label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                </svg>
+              </div>
+              <input type="text" id="nama_pelanggan" required class="w-full pl-9 pr-3 py-2 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" placeholder="cth. Ahmad Fauzi">
+            </div>
+          </div>
+
+          <!-- Nama Barang -->
+          <div>
+            <label for="nama_barang" class="block text-xs font-semibold text-slate-600 uppercase mb-1.5">
+              Nama Barang / Perangkat <span class="text-rose-500">*</span>
+            </label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                </svg>
+              </div>
+              <input type="text" id="nama_barang" required class="w-full pl-9 pr-3 py-2 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" placeholder="cth. Laptop ASUS ROG Zephyrus G14">
+            </div>
+          </div>
+
+          <!-- Status Dropdown (5 Tahap SKPL) -->
+          <div>
+            <label for="status" class="block text-xs font-semibold text-slate-600 uppercase mb-1.5">
+              Status Pengerjaan <span class="text-rose-500">*</span>
+            </label>
+            <div class="relative">
+              <select id="status" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all appearance-none pr-8">
+                <option value="Diterima">Diterima</option>
+                <option value="Diperiksa">Diperiksa</option>
+                <option value="Diproses">Diproses</option>
+                <option value="Selesai">Selesai</option>
+                <option value="Diambil">Diambil</option>
+              </select>
+              <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Biaya Akhir -->
+          <div>
+            <label for="biaya_akhir" class="block text-xs font-semibold text-slate-600 uppercase mb-1.5">
+              Biaya Akhir (Rp) <span class="text-rose-500">*</span>
+            </label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500 font-semibold text-sm pointer-events-none">Rp</span>
+              <input type="number" id="biaya_akhir" min="0" step="1000" value="0" required class="w-full pl-10 pr-3 py-2 bg-white border border-slate-300 rounded-lg text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" placeholder="0">
+            </div>
+            <p class="text-[11px] text-slate-400 mt-1">Isi nominal saat status servis Selesai atau Diambil (TC-01: 150000).</p>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="pt-2 flex items-center gap-3">
+            <button type="submit" id="btn-submit" class="flex-1 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-medium py-2.5 px-4 rounded-lg shadow-sm transition-all flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1">
+              <svg id="btn-submit-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span id="btn-submit-text">Simpan Data</span>
+            </button>
+            <button type="button" id="btn-reset" onclick="resetForm()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2.5 px-4 rounded-lg transition-all text-sm focus:outline-none">
+              Reset
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- RIGHT COLUMN: TABLE, SEARCH & FILTER (7 COLS) -->
+      <div class="lg:col-span-7 flex flex-col gap-4">
+
+        <!-- FILTER & SEARCH BAR -->
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center gap-3 justify-between">
+          <!-- Search Box -->
+          <div class="relative w-full sm:w-72">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
+            </div>
+            <input type="text" id="search-input" oninput="handleSearchFilter()" class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" placeholder="Cari No, Pelanggan, Barang...">
+          </div>
+
+          <!-- Status Filter Dropdown -->
+          <div class="flex items-center gap-2 w-full sm:w-auto">
+            <label for="status-filter" class="text-xs font-semibold text-slate-500 whitespace-nowrap">Filter Status:</label>
+            <select id="status-filter" onchange="handleSearchFilter()" class="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
+              <option value="ALL">Semua Status</option>
+              <option value="Diterima">Diterima</option>
+              <option value="Diperiksa">Diperiksa</option>
+              <option value="Diproses">Diproses</option>
+              <option value="Selesai">Selesai</option>
+              <option value="Diambil">Diambil</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- TABLE CONTAINER -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                  <th class="py-3 px-4">No. Servis</th>
+                  <th class="py-3 px-4">Pelanggan</th>
+                  <th class="py-3 px-4">Barang</th>
+                  <th class="py-3 px-4">Status</th>
+                  <th class="py-3 px-4">Biaya Akhir</th>
+                  <th class="py-3 px-4 text-center">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="services-table-body" class="divide-y divide-slate-100 text-sm">
+                <!-- Dynamically populated via JS safely using textContent / DOM createElement -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Empty State Container -->
+          <div id="empty-state" class="hidden py-12 px-4 text-center flex flex-col items-center justify-center">
+            <div class="w-16 h-16 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mb-3">
+              <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+              </svg>
+            </div>
+            <h4 class="text-base font-bold text-slate-800">Belum Ada Data Servis</h4>
+            <p class="text-xs text-slate-500 max-w-sm mt-1">Belum ada transaksi servis yang sesuai kriteria pencarian atau belum ada data yang tersimpan.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- DELETE CONFIRMATION MODAL -->
+  <div id="delete-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs transition-opacity">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200">
+      <div class="w-12 h-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mb-4">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+        </svg>
+      </div>
+      <h3 class="text-lg font-bold text-slate-900">Konfirmasi Hapus Data</h3>
+      <p class="text-sm text-slate-600 mt-2">
+        Apakah Anda yakin ingin menghapus data servis <span id="delete-item-name" class="font-semibold text-slate-900"></span>? Tindakan ini tidak dapat dibatalkan.
+      </p>
+      <div class="mt-6 flex items-center justify-end gap-3">
+        <button type="button" onclick="closeDeleteModal()" class="px-4 py-2 rounded-lg text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 transition-all">
+          Batal
+        </button>
+        <button type="button" id="btn-confirm-delete" onclick="executeDelete()" class="px-4 py-2 rounded-lg text-sm font-medium text-white bg-rose-600 hover:bg-rose-700 transition-all shadow-sm">
+          Ya, Hapus Data
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONFIGURATION MODAL (SUPABASE KEYS) -->
+  <div id="config-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-200">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+        <h3 class="text-lg font-bold text-slate-900">Konfigurasi Supabase Client</h3>
+        <button onclick="toggleConfigModal(false)" class="text-slate-400 hover:text-slate-600">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      <p class="text-xs text-slate-500 mb-4 leading-relaxed">
+        Masukkan <strong>Project URL</strong> dan <strong>Anon Public Key</strong> dari menu Settings &gt; API di dashboard Supabase Anda. Kunci rahasia (Secret Key) tidak diperlukan (Sesuai panduan <code>SEC-02</code>).
+      </p>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Supabase URL</label>
+          <input type="url" id="cfg-supabase-url" placeholder="https://xyzcompany.supabase.co" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-indigo-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Supabase Anon Key</label>
+          <input type="text" id="cfg-supabase-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono text-slate-900 focus:ring-2 focus:ring-indigo-500">
+        </div>
+      </div>
+      <div class="mt-6 flex items-center justify-between">
+        <button type="button" onclick="loadDefaultMockData()" class="text-xs font-medium text-indigo-600 hover:underline">
+          Gunakan Mock Data (Demo Lokal)
+        </button>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="toggleConfigModal(false)" class="px-4 py-2 rounded-lg text-sm text-slate-600 hover:bg-slate-100">Tutup</button>
+          <button type="button" onclick="saveSupabaseConfig()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm">Simpan & Hubungkan</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- APPLICATION LOGIC & SECURITY ENFORCEMENT -->
+  <script>
+    /**
+     * ServiceTrack Application Script
+     * Strict adherence to PRD.md, DESIGN.md, and RULES.md
+     */
+
+    // Initial State & Configuration
+    let servicesData = [];
+    let deleteTargetId = null;
+    let supabaseClient = null;
+
+    // SEC-02: Public Anon Config (Defaults to LocalStorage or empty)
+    let SUPABASE_URL = localStorage.getItem('ST_SUPABASE_URL') || '';
+    let SUPABASE_ANON_KEY = localStorage.getItem('ST_SUPABASE_ANON_KEY') || '';
+
+    // Sample fallback data per Modul 2 SKPL
+    const DEFAULT_DUMMY_DATA = [
+      { id: 1, no_servis: 'SRV-202611-001', nama_pelanggan: 'Ahmad Fauzi', nama_barang: 'Laptop ASUS ROG Zephyrus G14', status: 'Diproses', biaya_akhir: 0.00 },
+      { id: 2, no_servis: 'SRV-202611-002', nama_pelanggan: 'Siti Nurhaliza', nama_barang: 'Printer Epson L3110', status: 'Selesai', biaya_akhir: 150000.00 },
+      { id: 3, no_servis: 'SRV-202611-003', nama_pelanggan: 'Budi Santoso', nama_barang: 'Smartphone Samsung Galaxy S21', status: 'Diterima', biaya_akhir: 0.00 }
+    ];
+
+    // Initialize Supabase Client
+    function initSupabase() {
+      if (SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase) {
+        try {
+          supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+          updateConnectionStatus(true, 'Supabase Connected');
+          fetchServicesFromSupabase();
+          return;
+        } catch (err) {
+          console.warn('Gagal menginisialisasi Supabase:', err);
+          updateConnectionStatus(false, 'Supabase Error');
+        }
+      }
+      // Demo / Mock Mode
+      updateConnectionStatus(false, 'Mode Demo / Offline');
+      loadStoredOrMockData();
+    }
+
+    function updateConnectionStatus(isConnected, message) {
+      const badge = document.getElementById('db-status-badge');
+      const dot = document.getElementById('db-status-dot');
+      const text = document.getElementById('db-status-text');
+
+      if (isConnected) {
+        badge.className = "inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 transition-all cursor-pointer";
+        dot.innerHTML = `
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+        `;
+      } else {
+        badge.className = "inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200 transition-all cursor-pointer";
+        dot.innerHTML = `
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+        `;
+      }
+      text.textContent = message;
+    }
+
+    // Fetch Data from Supabase
+    async function fetchServicesFromSupabase() {
+      if (!supabaseClient) return;
+      try {
+        const { data, error } = await supabaseClient
+          .from('services')
+          .select('*')
+          .order('id', { ascending: true });
+
+        if (error) throw error;
+        servicesData = data || [];
+        renderTable();
+        updateKPIs();
+      } catch (err) {
+        console.error('Fetch error:', err);
+        showErrorAlert('Gagal mengambil data dari Supabase: ' + err.message);
+        loadStoredOrMockData();
+      }
+    }
+
+    function loadStoredOrMockData() {
+      const local = localStorage.getItem('ST_SERVICES_DATA');
+      if (local) {
+        try {
+          servicesData = JSON.parse(local);
+        } catch(e) {
+          servicesData = [...DEFAULT_DUMMY_DATA];
+        }
+      } else {
+        servicesData = [...DEFAULT_DUMMY_DATA];
+        localStorage.setItem('ST_SERVICES_DATA', JSON.stringify(servicesData));
+      }
+      renderTable();
+      updateKPIs();
+    }
+
+    // Generate unique No. Servis
+    function generateServiceNumber() {
+      const date = new Date();
+      const yr = date.getFullYear();
+      const mo = String(date.getMonth() + 1).padStart(2, '0');
+      const randomSeq = String(Math.floor(100 + Math.random() * 900));
+      return `SRV-${yr}${mo}-${randomSeq}`;
+    }
+
+    // SEC-01: HTML Escaping Utility for strict XSS prevention
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    // Format Rupiah (id-ID)
+    function formatRupiah(num) {
+      return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      }).format(num || 0);
+    }
+
+    // Status Badge Helpers
+    function getStatusBadgeClass(status) {
+      switch (status) {
+        case 'Diterima':
+          return 'bg-slate-100 text-slate-700 border-slate-200';
+        case 'Diperiksa':
+          return 'bg-amber-50 text-amber-700 border-amber-200';
+        case 'Diproses':
+          return 'bg-blue-50 text-blue-700 border-blue-200';
+        case 'Selesai':
+          return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+        case 'Diambil':
+          return 'bg-purple-50 text-purple-700 border-purple-200';
+        default:
+          return 'bg-slate-100 text-slate-700 border-slate-200';
+      }
+    }
+
+    // Render Table Safely (SEC-01 Compliant)
+    function renderTable(dataToRender = null) {
+      const list = dataToRender || getFilteredServices();
+      const tbody = document.getElementById('services-table-body');
+      const emptyState = document.getElementById('empty-state');
+      tbody.innerHTML = '';
+
+      if (list.length === 0) {
+        emptyState.classList.remove('hidden');
+        return;
+      }
+      emptyState.classList.add('hidden');
+
+      list.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-50 transition-colors border-b border-slate-100";
+
+        // Kolom 1: No. Servis (Monospace)
+        const tdNo = document.createElement('td');
+        tdNo.className = "py-3 px-4 font-mono font-semibold text-slate-900 text-xs";
+        tdNo.textContent = item.no_servis; // SEC-01 textContent
+        tr.appendChild(tdNo);
+
+        // Kolom 2: Nama Pelanggan
+        const tdPelanggan = document.createElement('td');
+        tdPelanggan.className = "py-3 px-4 font-medium text-slate-800";
+        tdPelanggan.textContent = item.nama_pelanggan; // SEC-01 textContent
+        tr.appendChild(tdPelanggan);
+
+        // Kolom 3: Nama Barang
+        const tdBarang = document.createElement('td');
+        tdBarang.className = "py-3 px-4 text-slate-600";
+        tdBarang.textContent = item.nama_barang; // SEC-01 textContent
+        tr.appendChild(tdBarang);
+
+        // Kolom 4: Status Badge
+        const tdStatus = document.createElement('td');
+        tdStatus.className = "py-3 px-4";
+        const badge = document.createElement('span');
+        badge.className = `inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusBadgeClass(item.status)}`;
+        badge.textContent = item.status;
+        tdStatus.appendChild(badge);
+        tr.appendChild(tdStatus);
+
+        // Kolom 5: Biaya Akhir
+        const tdBiaya = document.createElement('td');
+        tdBiaya.className = "py-3 px-4 font-semibold text-slate-900";
+        tdBiaya.textContent = formatRupiah(item.biaya_akhir);
+        tr.appendChild(tdBiaya);
+
+        // Kolom 6: Aksi (Edit & Hapus)
+        const tdAksi = document.createElement('td');
+        tdAksi.className = "py-3 px-4 text-center whitespace-nowrap";
+        
+        // Edit Button
+        const btnEdit = document.createElement('button');
+        btnEdit.className = "inline-flex items-center p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all mr-1";
+        btnEdit.title = "Edit Data Servis";
+        btnEdit.onclick = () => populateFormForEdit(item.id);
+        btnEdit.innerHTML = `
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+          </svg>
+        `;
+
+        // Delete Button
+        const btnDelete = document.createElement('button');
+        btnDelete.className = "inline-flex items-center p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all";
+        btnDelete.title = "Hapus Servis";
+        btnDelete.onclick = () => openDeleteModal(item.id, item.no_servis, item.nama_pelanggan);
+        btnDelete.innerHTML = `
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+          </svg>
+        `;
+
+        tdAksi.appendChild(btnEdit);
+        tdAksi.appendChild(btnDelete);
+        tr.appendChild(tdAksi);
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Update Top Summary / KPI Cards
+    function updateKPIs() {
+      const aktifCount = servicesData.filter(s => ['Diterima', 'Diperiksa', 'Diproses'].includes(s.status)).length;
+      const selesaiCount = servicesData.filter(s => ['Selesai', 'Diambil'].includes(s.status)).length;
+      const totalPendapatan = servicesData.reduce((acc, s) => acc + (parseFloat(s.biaya_akhir) || 0), 0);
+
+      document.getElementById('kpi-aktif').textContent = aktifCount;
+      document.getElementById('kpi-selesai').textContent = selesaiCount;
+      document.getElementById('kpi-pendapatan').textContent = formatRupiah(totalPendapatan);
+    }
+
+    // Search & Filter
+    function getFilteredServices() {
+      const searchQuery = (document.getElementById('search-input').value || '').toLowerCase().trim();
+      const statusFilter = document.getElementById('status-filter').value;
+
+      return servicesData.filter(item => {
+        const matchSearch = (
+          (item.no_servis && item.no_servis.toLowerCase().includes(searchQuery)) ||
+          (item.nama_pelanggan && item.nama_pelanggan.toLowerCase().includes(searchQuery)) ||
+          (item.nama_barang && item.nama_barang.toLowerCase().includes(searchQuery))
+        );
+        const matchStatus = (statusFilter === 'ALL' || item.status === statusFilter);
+        return matchSearch && matchStatus;
+      });
+    }
+
+    function handleSearchFilter() {
+      renderTable();
+    }
+
+    // Error Alert Box Handlers (TC-01 / TC-02)
+    function showErrorAlert(message) {
+      const alertBox = document.getElementById('alert-error-box');
+      const alertText = document.getElementById('alert-error-text');
+      alertText.textContent = message; // SEC-01 Safe textContent
+      alertBox.classList.remove('hidden');
+      alertBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function hideErrorAlert() {
+      document.getElementById('alert-error-box').classList.add('hidden');
+    }
+
+    // Form Submit Handler (Create & Update with TC-01 & TC-02 Enforcement)
+    async function handleFormSubmit(event) {
+      event.preventDefault();
+      hideErrorAlert();
+
+      const serviceId = document.getElementById('service-id').value;
+      const no_servis = document.getElementById('no_servis').value.trim();
+      const nama_pelanggan = document.getElementById('nama_pelanggan').value.trim();
+      const nama_barang = document.getElementById('nama_barang').value.trim();
+      const status = document.getElementById('status').value;
+      const biayaAkhirInput = document.getElementById('biaya_akhir').value;
+
+      // 1. Mandatory Text Validation
+      if (!no_servis || !nama_pelanggan || !nama_barang) {
+        showErrorAlert("Semua field bertanda bintang (*) wajib diisi.");
+        return;
+      }
+
+      // 2. Strict Input Validation (TC-02: Non-negative check)
+      const nominalBiaya = parseFloat(biayaAkhirInput);
+      if (isNaN(nominalBiaya) || nominalBiaya < 0) {
+        showErrorAlert("Biaya akhir tidak boleh bernilai negatif (minimal 0)");
+        document.getElementById('biaya_akhir').focus();
+        return;
+      }
+
+      // 3. Status Validation
+      const validStatuses = ['Diterima', 'Diperiksa', 'Diproses', 'Selesai', 'Diambil'];
+      if (!validStatuses.includes(status)) {
+        showErrorAlert("Status pengerjaan servis tidak valid.");
+        return;
+      }
+
+      // Button Loading State
+      setButtonLoading(true);
+
+      const payload = {
+        no_servis,
+        nama_pelanggan,
+        nama_barang,
+        status,
+        biaya_akhir: nominalBiaya
+      };
+
+      try {
+        if (supabaseClient) {
+          if (serviceId) {
+            // UPDATE
+            const { error } = await supabaseClient
+              .from('services')
+              .update(payload)
+              .eq('id', serviceId);
+            if (error) throw error;
+          } else {
+            // INSERT
+            const { error } = await supabaseClient
+              .from('services')
+              .insert([payload]);
+            if (error) throw error;
+          }
+          await fetchServicesFromSupabase();
+        } else {
+          // Local/Demo Mode Mutation
+          if (serviceId) {
+            const index = servicesData.findIndex(s => s.id == serviceId);
+            if (index !== -1) {
+              servicesData[index] = { ...servicesData[index], ...payload };
+            }
+          } else {
+            const newId = servicesData.length > 0 ? Math.max(...servicesData.map(s => s.id)) + 1 : 1;
+            servicesData.push({ id: newId, ...payload });
+          }
+          localStorage.setItem('ST_SERVICES_DATA', JSON.stringify(servicesData));
+          renderTable();
+          updateKPIs();
+        }
+
+        resetForm();
+      } catch (err) {
+        console.error('Submit error:', err);
+        showErrorAlert('Gagal menyimpan ke database: ' + (err.message || err));
+      } finally {
+        setButtonLoading(false);
+      }
+    }
+
+    // Populate Form for Editing (Update Flow)
+    function populateFormForEdit(id) {
+      const item = servicesData.find(s => s.id == id);
+      if (!item) return;
+
+      hideErrorAlert();
+      document.getElementById('service-id').value = item.id;
+      document.getElementById('no_servis').value = item.no_servis;
+      document.getElementById('nama_pelanggan').value = item.nama_pelanggan;
+      document.getElementById('nama_barang').value = item.nama_barang;
+      document.getElementById('status').value = item.status;
+      document.getElementById('biaya_akhir').value = item.biaya_akhir;
+
+      // Update Form UI Labels
+      document.getElementById('form-title').textContent = "Edit Data & Biaya Servis";
+      document.getElementById('form-subtitle').textContent = `Memperbarui record #${item.no_servis}`;
+      document.getElementById('form-mode-badge').textContent = "Mode Edit";
+      document.getElementById('form-mode-badge').className = "px-2.5 py-1 text-xs font-semibold rounded-md bg-amber-50 text-amber-700";
+      document.getElementById('btn-submit-text').textContent = "Perbarui Data";
+      
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Reset Form to Initial New State
+    function resetForm() {
+      hideErrorAlert();
+      document.getElementById('service-form').reset();
+      document.getElementById('service-id').value = '';
+      document.getElementById('no_servis').value = generateServiceNumber();
+      document.getElementById('status').value = 'Diterima';
+      document.getElementById('biaya_akhir').value = 0;
+
+      document.getElementById('form-title').textContent = "Penerimaan Servis Baru";
+      document.getElementById('form-subtitle').textContent = "Mencatat pendaftaran servis barang pelanggan";
+      document.getElementById('form-mode-badge').textContent = "Mode Baru";
+      document.getElementById('form-mode-badge').className = "px-2.5 py-1 text-xs font-semibold rounded-md bg-indigo-50 text-indigo-700";
+      document.getElementById('btn-submit-text').textContent = "Simpan Data";
+    }
+
+    // Loading State Toggle
+    function setButtonLoading(isLoading) {
+      const btn = document.getElementById('btn-submit');
+      const text = document.getElementById('btn-submit-text');
+      const icon = document.getElementById('btn-submit-icon');
+
+      if (isLoading) {
+        btn.disabled = true;
+        btn.classList.add('opacity-70', 'cursor-not-allowed');
+        text.textContent = "Menyimpan...";
+        icon.classList.add('animate-spin');
+        icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>`;
+      } else {
+        btn.disabled = false;
+        btn.classList.remove('opacity-70', 'cursor-not-allowed');
+        icon.classList.remove('animate-spin');
+        icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>`;
+      }
+    }
+
+    // Delete Modal Logic
+    function openDeleteModal(id, noServis, pelanggan) {
+      deleteTargetId = id;
+      document.getElementById('delete-item-name').textContent = `${noServis} (${pelanggan})`;
+      document.getElementById('delete-modal').classList.remove('hidden');
+    }
+
+    function closeDeleteModal() {
+      deleteTargetId = null;
+      document.getElementById('delete-modal').classList.add('hidden');
+    }
+
+    async function executeDelete() {
+      if (!deleteTargetId) return;
+      const btnConfirm = document.getElementById('btn-confirm-delete');
+      btnConfirm.disabled = true;
+      btnConfirm.textContent = "Menghapus...";
+
+      try {
+        if (supabaseClient) {
+          const { error } = await supabaseClient
+            .from('services')
+            .delete()
+            .eq('id', deleteTargetId);
+          if (error) throw error;
+          await fetchServicesFromSupabase();
+        } else {
+          servicesData = servicesData.filter(s => s.id != deleteTargetId);
+          localStorage.setItem('ST_SERVICES_DATA', JSON.stringify(servicesData));
+          renderTable();
+          updateKPIs();
+        }
+        closeDeleteModal();
+      } catch (err) {
+        console.error('Delete error:', err);
+        alert('Gagal menghapus data: ' + err.message);
+      } finally {
+        btnConfirm.disabled = false;
+        btnConfirm.textContent = "Ya, Hapus Data";
+      }
+    }
+
+    // Config Modal
+    function toggleConfigModal(show) {
+      const modal = document.getElementById('config-modal');
+      if (show) {
+        document.getElementById('cfg-supabase-url').value = SUPABASE_URL;
+        document.getElementById('cfg-supabase-key').value = SUPABASE_ANON_KEY;
+        modal.classList.remove('hidden');
+      } else {
+        modal.classList.add('hidden');
+      }
+    }
+
+    function saveSupabaseConfig() {
+      const url = document.getElementById('cfg-supabase-url').value.trim();
+      const key = document.getElementById('cfg-supabase-key').value.trim();
+
+      if (!url || !key) {
+        alert("Silakan isi Supabase URL dan Anon Key");
+        return;
+      }
+
+      SUPABASE_URL = url;
+      SUPABASE_ANON_KEY = key;
+      localStorage.setItem('ST_SUPABASE_URL', url);
+      localStorage.setItem('ST_SUPABASE_ANON_KEY', key);
+
+      toggleConfigModal(false);
+      initSupabase();
+    }
+
+    function loadDefaultMockData() {
+      localStorage.removeItem('ST_SUPABASE_URL');
+      localStorage.removeItem('ST_SUPABASE_ANON_KEY');
+      SUPABASE_URL = '';
+      SUPABASE_ANON_KEY = '';
+      supabaseClient = null;
+      toggleConfigModal(false);
+      updateConnectionStatus(false, 'Mode Demo / Offline');
+      loadStoredOrMockData();
+    }
+
+    // App Initialization
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('no_servis').value = generateServiceNumber();
+      initSupabase();
+    });
+  </script>
+</body>
+</html>
